@@ -5,10 +5,10 @@ a TeX Live install. It installs an nbconvert config that compiles PDFs with
 [tectonic](https://tectonic-typesetting.github.io/) instead of xelatex.
 
 ```bash
-conda install -c https://prefix.dev/notebook-pdf -c conda-forge notebook-pdf
+conda install -c https://prefix.dev/philipnickel/notebook-pdf -c conda-forge notebook-pdf
 ```
 
-or with pixi: `pixi workspace channel add https://prefix.dev/notebook-pdf && pixi add notebook-pdf`.
+or with pixi: `pixi workspace channel add https://prefix.dev/philipnickel/notebook-pdf && pixi add notebook-pdf`.
 
 - **The first export needs internet.** tectonic downloads the TeX files it needs (~50 MB) and the
   first export takes a few minutes. Later exports take seconds and work offline.
