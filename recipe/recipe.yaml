@@ -16,7 +16,8 @@ build:
   noarch: generic
   # Jupyter reads {sys.prefix}/etc/jupyter on every OS, so one noarch build covers all platforms
   script:
-    - if: win
+    # Not `if: win`: for noarch the target platform is noarch, so test where the build runs
+    - if: "'win' in build_platform"
       then:
         - mkdir %PREFIX%\etc\jupyter
         - copy jupyter_nbconvert_config.json %PREFIX%\etc\jupyter\
