@@ -6,8 +6,10 @@ with [tectonic](https://tectonic-typesetting.github.io/), which downloads only t
 a notebook actually needs.
 
 ```bash
-conda install -c <prefix.dev channel> -c conda-forge notebook-pdf
+conda install -c https://prefix.dev/notebook-pdf -c conda-forge notebook-pdf
 ```
+
+With pixi: `pixi workspace channel add https://prefix.dev/notebook-pdf`, then `pixi add notebook-pdf`.
 
 > **The first export needs internet.** In a fresh user account it downloads ~50 MB of TeX support
 > files into tectonic's cache and takes a few minutes. Later exports take seconds and work offline,
