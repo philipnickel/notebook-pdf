@@ -1,0 +1,13 @@
+# Dev workspace: https://pixi.sh/latest/reference/pixi_manifest/
+[workspace]
+name = "notebook-pdf"
+channels = ["conda-forge"]
+platforms = ["osx-arm64", "osx-64", "linux-64", "win-64"]
+
+[dependencies]
+rattler-build = ">=0.57"
+
+[tasks]
+build = "rattler-build build --recipe recipe --channel conda-forge --output-dir output"
+# Export the sample notebook in a throwaway env built from ./output (run `build` first)
+e2e = "pixi exec --channel ./output --channel conda-forge --spec notebook-pdf --spec python=3.12 python tests/check_pdf.py"

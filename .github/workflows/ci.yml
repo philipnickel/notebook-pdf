@@ -1,0 +1,78 @@
+# Build the noarch package, test PDF export on Linux/macOS/Windows, publish on v* tags.
+# Trusted publishing: https://prefix.dev/docs/prefix/trusted_publishing
+name: CI
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: prefix-dev/setup-pixi@v0.11.2
+        with:
+          cache: true
+      - run: pixi run build
+      - uses: actions/upload-artifact@v7
+        with:
+          name: conda-package
+          path: output/
+          if-no-files-found: error
+
+  e2e:
+    name: e2e (${{ matrix.os }})
+    needs: build
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/download-artifact@v8
+        with:
+          name: conda-package
+          path: output/
+      - uses: prefix-dev/setup-pixi@v0.11.2
+        with:
+          cache: true
+      # Fresh env from ./output + conda-forge; exports tests/notebooks/*.ipynb with an empty tectonic cache
+      - run: pixi run e2e
+
+  publish:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [build, e2e]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write # OIDC token for prefix.dev trusted publishing
+    env:
+      PREFIX_CHANNEL: ${{ vars.PREFIX_CHANNEL }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/download-artifact@v8
+        with:
+          name: conda-package
+          path: output/
+      - name: Check tag matches recipe version
+        run: |
+          VERSION=$(sed -n 's/^  version: "\(.*\)"$/\1/p' recipe/recipe.yaml)
+          if [ "v$VERSION" != "$GITHUB_REF_NAME" ]; then
+            echo "::error::Tag $GITHUB_REF_NAME does not match recipe version $VERSION"
+            exit 1
+          fi
+          if [ -z "$PREFIX_CHANNEL" ]; then
+            echo "::error::Set the PREFIX_CHANNEL repository variable to the prefix.dev channel name"
+            exit 1
+          fi
+      - uses: prefix-dev/setup-pixi@v0.11.2
+        with:
+          cache: true
+      - run: pixi run rattler-build upload prefix --channel "$PREFIX_CHANNEL" output/noarch/*.conda

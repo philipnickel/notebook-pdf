@@ -1,0 +1,7 @@
+{
+  "PDFExporter": {
+    "latex_command": ["tectonic", "-X", "compile", "-Z", "continue-on-errors", "{filename}"],
+    "latex_count": 1,
+    "bib_command": ["tectonic", "--version"]
+  }
+}

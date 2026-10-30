@@ -1,0 +1,44 @@
+# rattler-build recipe: https://rattler.build/latest/reference/recipe_file/
+context:
+  version: "0.1.0"
+
+package:
+  name: notebook-pdf
+  version: ${{ version }}
+
+source:
+  - path: jupyter_nbconvert_config.json
+  - path: ../LICENSE
+
+build:
+  number: 0
+  noarch: generic
+  script:
+    # Jupyter reads {sys.prefix}/etc/jupyter on every OS, so one noarch build covers all platforms
+    - mkdir -p $PREFIX/etc/jupyter
+    - cp jupyter_nbconvert_config.json $PREFIX/etc/jupyter/jupyter_nbconvert_config.json
+
+requirements:
+  run:
+    - nbconvert-core >=7
+    - pandoc
+    # -Z continue-on-errors is an unstable option; re-test before widening this range
+    - tectonic >=0.17,<0.18
+
+tests:
+  - script:
+      - jupyter nbconvert --show-config-json | python -c "import json,sys; c=json.load(sys.stdin)['PDFExporter']; assert c['latex_command'][0]=='tectonic', c"
+    requirements:
+      run:
+        - python
+
+about:
+  homepage: https://github.com/philipnickel/notebook-pdf
+  repository: https://github.com/philipnickel/notebook-pdf
+  summary: Make nbconvert (and VS Code "Export to PDF") compile with tectonic instead of xelatex
+  description: |
+    Drops an environment-level jupyter_nbconvert_config.json into $PREFIX/etc/jupyter that
+    points nbconvert's PDFExporter at tectonic. Tectonic fetches only the LaTeX packages a
+    document needs on first use, so no TeX Live install is required.
+  license: BSD-3-Clause
+  license_file: LICENSE
