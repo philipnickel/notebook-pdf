@@ -1,7 +1,9 @@
 # rattler-build recipe: https://rattler.build/latest/reference/recipe_file/
 # Built by pixi (see pixi.toml); tested by `pixi run e2e`
 context:
-  version: "0.1.0"
+  # The git tag sets this in CI (v1.2.3 -> 1.2.3), like Miniforge's MINIFORGE_VERSION;
+  # local builds get the fallback
+  version: ${{ env.get("NOTEBOOK_PDF_VERSION", default="0.0.0.dev0") }}
 
 package:
   name: notebook-pdf

@@ -73,6 +73,10 @@ pixi run e2e                     # export tests/notebooks/*.ipynb to PDF with th
 pixi publish --target-dir dist   # build the .conda file into ./dist
 ```
 
+Local builds are versioned `0.0.0.dev0`. To build a specific version, set
+`NOTEBOOK_PDF_VERSION=1.2.3` and pass `--clean`; without it, pixi reuses a cached build
+because it doesn't notice environment variable changes.
+
 The test notebooks are pre-executed, so no kernel is needed:
 [sample.ipynb](tests/notebooks/sample.ipynb) (math, æøå, a plot, a table) and
 [broken_math.ipynb](tests/notebooks/broken_math.ipynb) (must still produce a PDF).
@@ -82,14 +86,14 @@ The test notebooks are pre-executed, so no kernel is needed:
 [.github/workflows/ci.yml](.github/workflows/ci.yml) runs on pushes to `main`, PRs and tags:
 
 - **e2e**: runs `pixi run e2e` on Linux, macOS and Windows.
-- **publish**: on `v*` tags only. Checks the tag matches `version` in
-  [recipe/recipe.yaml](recipe/recipe.yaml), then runs `pixi publish` to build and upload to
-  prefix.dev with trusted publishing.
+- **publish**: on `v*` tags only. The tag is the version (`v1.2.3` → `1.2.3`, passed to
+  [recipe/recipe.yaml](recipe/recipe.yaml) as `NOTEBOOK_PDF_VERSION`, the way Miniforge uses
+  `MINIFORGE_VERSION`). Runs `pixi publish --clean` to build and upload to prefix.dev with
+  trusted publishing.
 
 To release:
 
 1. One-time setup: create the channel on prefix.dev, then add a trusted publisher for repo
    `philipnickel/notebook-pdf`, workflow `ci.yml`. Set the repository variable `PREFIX_CHANNEL`
    to the channel name.
-2. Bump `version` in `recipe/recipe.yaml` (reset `build.number` to 0), commit, then
-   `git tag v<version> && git push --tags`.
+2. Tag and push: `git tag v<version> && git push origin v<version>`. No file needs editing.

@@ -38,13 +38,8 @@ jobs:
       PREFIX_CHANNEL: ${{ vars.PREFIX_CHANNEL }}
     steps:
       - uses: actions/checkout@v7
-      - name: Check tag matches recipe version
+      - name: Check channel is configured
         run: |
-          VERSION=$(sed -n 's/^  version: "\(.*\)"$/\1/p' recipe/recipe.yaml)
-          if [ "v$VERSION" != "$GITHUB_REF_NAME" ]; then
-            echo "::error::Tag $GITHUB_REF_NAME does not match recipe version $VERSION"
-            exit 1
-          fi
           if [ -z "$PREFIX_CHANNEL" ]; then
             echo "::error::Set the PREFIX_CHANNEL repository variable to the prefix.dev channel name"
             exit 1
@@ -52,4 +47,5 @@ jobs:
       - uses: prefix-dev/setup-pixi@v0.11.2
         with:
           cache: true
-      - run: pixi publish --target-channel "https://prefix.dev/$PREFIX_CHANNEL"
+      # The tag is the version (v1.2.3 -> 1.2.3); --clean because pixi does not rebuild when only an env var changes
+      - run: NOTEBOOK_PDF_VERSION="${GITHUB_REF_NAME#v}" pixi publish --clean --target-channel "https://prefix.dev/$PREFIX_CHANNEL"
