@@ -17,17 +17,16 @@ build:
   number: 0
   noarch: generic
   # Jupyter reads {sys.prefix}/etc/jupyter on every OS, so one noarch build covers all platforms
+  # nushell behaves the same on every OS, so no per-platform branches
   script:
-    # Not `if: win`: for noarch the target platform is noarch, so test where the build runs
-    - if: "'win' in build_platform"
-      then:
-        - mkdir %PREFIX%\etc\jupyter
-        - copy jupyter_nbconvert_config.json %PREFIX%\etc\jupyter\
-      else:
-        - mkdir -p $PREFIX/etc/jupyter
-        - cp jupyter_nbconvert_config.json $PREFIX/etc/jupyter/
+    interpreter: nu
+    content:
+      - mkdir ($env.PREFIX | path join etc jupyter)
+      - cp jupyter_nbconvert_config.json ($env.PREFIX | path join etc jupyter)
 
 requirements:
+  build:
+    - nushell
   run:
     - nbconvert-core >=7
     - pandoc
