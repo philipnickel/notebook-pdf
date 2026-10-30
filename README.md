@@ -62,16 +62,16 @@ for always getting a PDF. It is an unstable tectonic option, which is why `tecto
 
 ## Development
 
-Needs [pixi](https://pixi.sh).
+Needs [pixi](https://pixi.sh). The workspace depends on its own package
+(`notebook-pdf = { path = "." }` in [pixi.toml](pixi.toml)), so pixi builds
+[recipe/recipe.yaml](recipe/recipe.yaml) with
+[pixi-build](https://pixi.prefix.dev/latest/build/getting_started/) and rebuilds it whenever
+`recipe/` changes.
 
 ```bash
-pixi run build   # rattler-build → output/noarch/notebook-pdf-*.conda (+ recipe tests)
-pixi run e2e     # export tests/notebooks/*.ipynb to PDF in a throwaway env from ./output
+pixi run e2e                     # export tests/notebooks/*.ipynb to PDF with the package installed
+pixi publish --target-dir dist   # build the .conda file into ./dist
 ```
-
-Rebuilding without bumping `version` or `build.number` keeps the same package file name, and
-`pixi exec` then reuses its cached env with the old package. Run `pixi clean cache --exec` before
-`pixi run e2e` in that case (CI always starts clean).
 
 The test notebooks are pre-executed, so no kernel is needed:
 [sample.ipynb](tests/notebooks/sample.ipynb) (math, æøå, a plot, a table) and
@@ -81,10 +81,10 @@ The test notebooks are pre-executed, so no kernel is needed:
 
 [.github/workflows/ci.yml](.github/workflows/ci.yml) runs on pushes to `main`, PRs and tags:
 
-- **build**: builds the package once on Linux (it is `noarch`).
 - **e2e**: runs `pixi run e2e` on Linux, macOS and Windows.
 - **publish**: on `v*` tags only. Checks the tag matches `version` in
-  [recipe/recipe.yaml](recipe/recipe.yaml) and uploads to prefix.dev with trusted publishing.
+  [recipe/recipe.yaml](recipe/recipe.yaml), then runs `pixi publish` to build and upload to
+  prefix.dev with trusted publishing.
 
 To release:
 

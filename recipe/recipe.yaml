@@ -1,4 +1,5 @@
 # rattler-build recipe: https://rattler.build/latest/reference/recipe_file/
+# Built by pixi (see pixi.toml); tested by `pixi run e2e`
 context:
   version: "0.1.0"
 
@@ -13,10 +14,15 @@ source:
 build:
   number: 0
   noarch: generic
+  # Jupyter reads {sys.prefix}/etc/jupyter on every OS, so one noarch build covers all platforms
   script:
-    # Jupyter reads {sys.prefix}/etc/jupyter on every OS, so one noarch build covers all platforms
-    - mkdir -p $PREFIX/etc/jupyter
-    - cp jupyter_nbconvert_config.json $PREFIX/etc/jupyter/jupyter_nbconvert_config.json
+    - if: win
+      then:
+        - mkdir %PREFIX%\etc\jupyter
+        - copy jupyter_nbconvert_config.json %PREFIX%\etc\jupyter\
+      else:
+        - mkdir -p $PREFIX/etc/jupyter
+        - cp jupyter_nbconvert_config.json $PREFIX/etc/jupyter/
 
 requirements:
   run:
@@ -24,13 +30,6 @@ requirements:
     - pandoc
     # -Z continue-on-errors is an unstable option; re-test before widening this range
     - tectonic >=0.17,<0.18
-
-tests:
-  - script:
-      - jupyter nbconvert --show-config-json | python -c "import json,sys; c=json.load(sys.stdin)['PDFExporter']; assert c['latex_command'][0]=='tectonic', c"
-    requirements:
-      run:
-        - python
 
 about:
   homepage: https://github.com/philipnickel/notebook-pdf

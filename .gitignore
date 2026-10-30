@@ -1,4 +1,4 @@
 .pixi/
-output/
+dist/
 *.pdf
 .DS_Store
